@@ -38,7 +38,7 @@ export default function ViewTaskPage() {
         {/* Back Button inside container */}
         <button
           onClick={() => router.back()}
-          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
         >
           ← Back
         </button>

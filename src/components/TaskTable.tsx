@@ -1,6 +1,6 @@
 // src/app/tasks/components/TaskTable.tsx
 import React from "react";
-import TaskTableRow from "./TakTableRow";
+import TaskTableRow from "./TaskTableRow";
 import { tasks } from "~/server/db/schemas";
 
 interface TaskTableProps {

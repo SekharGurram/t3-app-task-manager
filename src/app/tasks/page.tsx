@@ -1,11 +1,9 @@
-// src/app/tasks/page.tsx
 import Link from "next/link";
 import { api } from "~/trpc/server";
-import TaskTable from "../_components/TaskTable";
+import TaskTable from "~/components/TaskTable";
 
 export default async function TasksPage() {
-  const allTasks = await api.task.getTaks();
-
+  let tasksObj:any = await api.task.getTaks();
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="flex items-center justify-between mb-8">
@@ -18,7 +16,7 @@ export default async function TasksPage() {
         </Link>
       </div>
 
-      <TaskTable tasks={allTasks} />
+      <TaskTable tasks={tasksObj.tasks || []} />
     </div>
   );
 }

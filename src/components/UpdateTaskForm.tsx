@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import SimpleToast from "./Toast";
 
 const statusOptions = [
   { value: "pending", label: "Pending" },
@@ -33,6 +34,11 @@ export default function UpdateTaskForm({
 
   const updateTask = api.task.updateTask.useMutation();
 
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [toastMessage, setToastMessage] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -45,12 +51,13 @@ export default function UpdateTaskForm({
         status,
         image_url: undefined,
       });
-
-      alert("Task updated!");
-      router.push("/tasks");
+      setShowToast(true);
+      setToastMessage("Task updated Successfully");
+      window.location.href = "/tasks"
     } catch (error) {
-      console.error(error);
-      alert("Failed to update task.");
+      setToastType("error");
+      setToastMessage("Failed to update the task!");
+      setShowToast(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -62,7 +69,7 @@ export default function UpdateTaskForm({
         {/* Back button top-left */}
         <button
           onClick={() => router.back()}
-          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
         >
           ← Back
         </button>
@@ -152,10 +159,17 @@ export default function UpdateTaskForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition"
+              className="w-full rounded bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition cursor-pointer"
             >
               {isSubmitting ? "Updating..." : "Update Task"}
             </button>
+            {showToast && (
+              <SimpleToast
+                message={toastMessage}
+                type={toastType}
+                onClose={() => setShowToast(false)}
+              />
+            )}
           </div>
         </form>
       </div>

@@ -1,4 +1,4 @@
-import CreateTaskForm from "~/app/_components/CreateTaskForm";
+import CreateTaskForm from "~/components/CreateTaskForm";
 
 export default function CreateTaskPage() {
   return <CreateTaskForm />;

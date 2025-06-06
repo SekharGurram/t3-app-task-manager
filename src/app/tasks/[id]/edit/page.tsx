@@ -3,22 +3,32 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { api } from "~/trpc/react";
-import UpdateTaskForm from "~/app/_components/UpdateTaskForm";
+import UpdateTaskForm from "~/components/UpdateTaskForm";
 
 export default function UpdateTaskPage() {
   const params = useParams();
-  const taskIdParam = params.id;  // string | string[] | undefined
+  const taskIdParam = params.id;
 
   // Ensure single string:
   const taskId = Array.isArray(taskIdParam) ? taskIdParam[0] : taskIdParam;
 
   const { data: task, isLoading, error } = api.task.getTaskById.useQuery(
-    { id: taskId! },  // Non-null assertion, be sure taskId exists
+    { id: taskId! },
     { enabled: !!taskId }
   );
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error || !task) return <div>Failed to load task data</div>;
+  if (isLoading) {
+    return <p className="p-8 text-center">Loading task...</p>;
+  }
+
+  if (error) {
+    return <p className="p-8 text-center text-red-600">Error: {error.message}</p>;
+  }
+
+  if (!task) {
+    return <p className="p-8 text-center text-gray-600">Task not found.</p>;
+  }
+
 
   return (
     <UpdateTaskForm
