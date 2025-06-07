@@ -15,7 +15,8 @@ export const tasks = createTable(
     description: t.text(), // optional
     status: taskStatusEnum("status").default("pending").notNull(),
     imageUrl: t.text(), // optional
-    createdAt: t.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`)
   }),
   (t) => [index("title_idx").on(t.title)],
 );

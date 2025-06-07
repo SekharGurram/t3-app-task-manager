@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { convertFileToBase64 } from "~/helpers/fileToBase";
 import SimpleToast from "./Toast";
+import { v4 as uuidv4 } from 'uuid';
 
 const statusOptions = [
   { value: "pending", label: "Pending" },
@@ -69,12 +70,13 @@ export default function CreateTaskForm() {
       let imageUrl:string = "";
       if (image) {
         const base64 = await convertFileToBase64(image);
+        const fileName = `${uuidv4()}${sanitizeFileName(image.name)}`;
         const response = await uploadImage.mutateAsync({
-          name: sanitizeFileName(image.name),
+          name:fileName,
           type: image.type,
           base64,
         });
-        imageUrl = response.url;
+        imageUrl =fileName;
       }
 
       await createTask.mutateAsync({

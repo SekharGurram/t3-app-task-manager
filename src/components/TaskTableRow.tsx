@@ -4,13 +4,13 @@ import Link from "next/link";
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
-import SimpleToast from "./Toast";
 
 interface TaskTableRowProps {
   task: any;
+  onShowToast: (message: string, type: "success" | "error") => void;
 }
 
-export default function TaskTableRow({ task }: TaskTableRowProps) {
+export default function TaskTableRow({ task, onShowToast }: TaskTableRowProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,11 +19,6 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
 
   const actionsRef = useRef<HTMLTableCellElement | null>(null);
   const deleteTask = api.task.deleteTask.useMutation();
-
-  const [showToast, setShowToast] = useState(false);
-  const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [toastMessage, setToastMessage] = useState("");
-
   const openConfirm = () => {
     setIsLoading(true);
 
@@ -42,7 +37,7 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
 
       setIsLoading(false);
       setShowConfirm(true);
-    }, 200); // Reduced delay for better UX
+    }, 200);
   };
 
   const handleDeleteConfirm = async () => {
@@ -50,15 +45,11 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
       setLoading(true);
       await deleteTask.mutateAsync({ id: task.id });
       setShowConfirm(false);
-      setToastMessage("Task deleted successfully");
-      setToastType("success");
-      setShowToast(true);
-      router.refresh(); // Refresh instead of full reload
+      onShowToast("Task deleted successfully", "success");
+      router.refresh();
     } catch (error) {
-      setToastType("error");
-      setToastMessage("Failed to delete the task!");
+      onShowToast("Failed to delete the task!", "error");
       setShowConfirm(false);
-      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -66,11 +57,7 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
 
   return (
     <>
-      <tr
-        className={`${
-          isLoading ? "opacity-50 pointer-events-none" : ""
-        } hover:bg-gray-50 transition-colors`}
-      >
+      <tr className={`${isLoading ? "opacity-50 pointer-events-none" : ""} hover:bg-gray-50 transition-colors`}>
         <td className="border border-gray-300 px-6 py-4 text-center text-gray-900 font-medium">
           {isLoading ? "Loading..." : task.title}
         </td>
@@ -79,6 +66,9 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
         </td>
         <td className="border border-gray-300 px-6 py-4 text-center text-gray-600 max-w-xs truncate">
           {task.description || "-"}
+        </td>
+        <td className="border border-gray-300 px-6 py-4 text-center text-gray-600 max-w-xs truncate">
+          {new Date(task.updatedAt).toLocaleString()}
         </td>
 
         <td
@@ -128,15 +118,6 @@ export default function TaskTableRow({ task }: TaskTableRowProps) {
           )}
         </td>
       </tr>
-
-      {/* Toast outside table row */}
-      {showToast && (
-        <SimpleToast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setShowToast(false)}
-        />
-      )}
     </>
   );
 }

@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { tasks } from "~/server/db/schemas";
-import { eq, count } from "drizzle-orm";
+import { eq, count, desc } from "drizzle-orm";
 import { Buffer } from "buffer";
-import { v4 as uuidv4 } from 'uuid';
 import BlackbazeAPIService from "~/server/services/blackbazeApiService";
 
 
@@ -55,15 +54,14 @@ export const taskRouter = createTRPCRouter({
         .select()
         .from(tasks)
         .where(input?.status ? eq(tasks.status, input.status) : undefined)
+        .orderBy(desc(tasks.updatedAt))
         .limit(limit)
         .offset(offset);
 
-      // Fetch total count for pagination
       const totalCountResult = await ctx.db
-      .select({ total: count() }).from(tasks);
+        .select({ total: count() }).from(tasks);
 
       const totalCount = totalCountResult || 0;
-      console.log("total count:",totalCount)
       return {
         tasks: tasksList,
         totalCount,
@@ -79,7 +77,7 @@ export const taskRouter = createTRPCRouter({
         title: z.string().min(1),
         description: z.string().optional(),
         status: statusEnum,
-        image_url: z.string().url().optional(),
+        imageUrl: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -88,7 +86,8 @@ export const taskRouter = createTRPCRouter({
           title: input.title,
           description: input.description,
           status: input.status,
-          imageUrl: input.image_url ?? "",
+          imageUrl: input.imageUrl ?? "",
+          updatedAt: new Date()
         })
         .where(eq(tasks.id, input.id));
     }),
@@ -118,21 +117,28 @@ export const taskRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const buffer = Buffer.from(input.base64, "base64");
-      const fileName = `${uuidv4()}-${input.name}`;
       const blackbazeAPIService = new BlackbazeAPIService();
-      const url = await blackbazeAPIService.uploadToB2(fileName, buffer, input.type);
-      return { url };
+      const url = await blackbazeAPIService.uploadToB2(input.name, buffer, input.type);
+      return {
+        success: true,
+        message: "File uploaded Successfully",
+        data: url
+      };
     }),
 
-  downloadUploadedImage: publicProcedure
+  getUploadedFile: publicProcedure
     .input(
       z.object({
-        fileName: z.string(),
+        name: z.string()
       })
     )
-    .mutation(async ({ input }) => {
+    .query(async ({ input }) => {
       const blackbazeAPIService = new BlackbazeAPIService();
-      const url = await blackbazeAPIService.getPrivateImageAsBase64(input.fileName);
-      return { url };
+      const getUrl = await blackbazeAPIService.getSignedUrl(input.name);
+      return {
+        success: true,
+        message: "File gotten Successfully",
+        data: getUrl
+      };
     }),
 });

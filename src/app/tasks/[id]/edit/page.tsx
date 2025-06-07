@@ -36,6 +36,7 @@ export default function UpdateTaskPage() {
       initialTitle={task.title}
       initialDescription={task.description ?? ""}
       initialStatus={task.status}
+      initialImageUrl={task.imageUrl || ""}
     />
   );
 }
