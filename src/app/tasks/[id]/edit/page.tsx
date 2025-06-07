@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { api } from "~/trpc/react";
 import UpdateTaskForm from "~/components/UpdateTaskForm";
@@ -9,7 +8,6 @@ export default function UpdateTaskPage() {
   const params = useParams();
   const taskIdParam = params.id;
 
-  // Ensure single string:
   const taskId = Array.isArray(taskIdParam) ? taskIdParam[0] : taskIdParam;
 
   const { data: task, isLoading, error } = api.task.getTaskById.useQuery(

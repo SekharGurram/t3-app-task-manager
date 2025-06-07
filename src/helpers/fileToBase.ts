@@ -3,7 +3,7 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
-            const base64 = (reader.result as string).split(",")[1]; // remove data:image/...;base64,
+            const base64 = (reader.result as string).split(",")[1];
             if (!base64) {
                 throw new Error("Base64 image data is missing");
             }

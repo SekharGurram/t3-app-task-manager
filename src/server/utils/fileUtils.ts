@@ -1,5 +1,3 @@
-// src/utils/fileUtils.ts
-
 export function generateFileKey(originalName: string): string {
   if (!originalName) throw new Error("Filename is required");
 

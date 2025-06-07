@@ -41,8 +41,6 @@ export default function TaskTable({ tasks }: TaskTableProps) {
           ))}
         </tbody>
       </table>
-
-      {/* Toast component */}
       {showToast && (
         <SimpleToast
           message={toastMessage}

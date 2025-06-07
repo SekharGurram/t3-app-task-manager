@@ -1,4 +1,3 @@
-// components/PageLoader.tsx
 'use-client'
 export default function PageLoader() {
   return (

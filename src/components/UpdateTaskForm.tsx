@@ -16,7 +16,7 @@ interface UpdateTaskFormProps {
   initialTitle: string;
   initialDescription?: string;
   initialStatus: "pending" | "in-progress" | "completed";
-  initialImageUrl?: string; // filename/key stored in db
+  initialImageUrl?: string;
 }
 
 export default function UpdateTaskForm({
@@ -46,10 +46,9 @@ export default function UpdateTaskForm({
     isFetching: isFetchingSignedUrl,
   } = api.task.getUploadedFile.useQuery(
     { name: initialImageUrl ?? "" },
-    { enabled: false } // only run manually
+    { enabled: false }
   );
 
-  // ⏱️ Generate signed URL when the image filename is present
   useEffect(() => {
     if (initialImageUrl) {
       refetchSignedUrl();
@@ -58,7 +57,6 @@ export default function UpdateTaskForm({
     }
   }, [initialImageUrl, refetchSignedUrl]);
 
-  // 🎯 Set signed image URL when data comes back
   useEffect(() => {
     if (fileUrlData?.success && fileUrlData.data) {
       setSignedImageUrl(fileUrlData.data);
@@ -77,13 +75,13 @@ export default function UpdateTaskForm({
         title,
         description,
         status,
-        imageUrl: initialImageUrl, // unchanged
+        imageUrl: initialImageUrl,
       });
 
       setToastType("success");
       setToastMessage("Task updated successfully");
       setShowToast(true);
-      router.push("/tasks");
+      window.location.href = "/tasks"
     } catch (error) {
       setToastType("error");
       setToastMessage("Failed to update task");
@@ -98,7 +96,7 @@ export default function UpdateTaskForm({
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-md px-8 py-6 relative">
         <button
           onClick={() => router.back()}
-          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="absolute top-4 left-4 px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
         >
           ← Back
         </button>
@@ -108,7 +106,6 @@ export default function UpdateTaskForm({
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
           <div>
             <label htmlFor="title" className="block mb-1 font-medium text-gray-700">
               Title <span className="text-red-500">*</span>
@@ -123,8 +120,6 @@ export default function UpdateTaskForm({
               placeholder="Enter task title"
             />
           </div>
-
-          {/* Description */}
           <div>
             <label htmlFor="description" className="block mb-1 font-medium text-gray-700">
               Description
@@ -138,8 +133,6 @@ export default function UpdateTaskForm({
               placeholder="Optional task description"
             />
           </div>
-
-          {/* Status and Image */}
           <div className="flex gap-6">
             <div className="w-1/2">
               <label htmlFor="status" className="block mb-1 font-medium text-gray-700">
@@ -158,8 +151,6 @@ export default function UpdateTaskForm({
                 ))}
               </select>
             </div>
-
-            {/* Image Preview */}
             <div className="w-1/2">
               <label className="block mb-1 font-medium text-gray-700">Image</label>
               {isFetchingSignedUrl ? (
@@ -177,13 +168,11 @@ export default function UpdateTaskForm({
               )}
             </div>
           </div>
-
-          {/* Submit */}
           <div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition"
+              className="w-full rounded bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition cursor-pointer"
             >
               {isSubmitting ? "Updating..." : "Update Task"}
             </button>

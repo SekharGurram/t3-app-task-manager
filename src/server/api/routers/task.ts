@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { tasks } from "~/server/db/schemas";
-import { eq, count, desc } from "drizzle-orm";
+import { eq,desc, and, sql } from "drizzle-orm";
 import { Buffer } from "buffer";
 import BlackbazeAPIService from "~/server/services/blackbazeApiService";
 
@@ -38,34 +38,51 @@ export const taskRouter = createTRPCRouter({
     }),
 
 
-  getTaks: publicProcedure
-    .input(z.object({
-      status: statusEnum.optional(),
-      page: z.number().min(1).optional(),
-      limit: z.number().min(1).max(100).optional(),
-    }).optional())
+  getTasks: publicProcedure
+    .input(
+      z.object({
+        status: z.union([statusEnum, z.literal("all")]).optional(), // ✅ allow "all"
+        search: z.string().optional(),
+        page: z.number().min(1).optional(),
+        limit: z.number().min(1).max(100).optional(),
+      }).optional()
+    )
     .query(async ({ ctx, input }) => {
       const page = input?.page ?? 1;
       const limit = input?.limit ?? 10;
       const offset = (page - 1) * limit;
 
-      // Fetch paginated tasks
+      const whereConditions = [];
+
+      if (input?.status && input.status !== "all") {
+        whereConditions.push(eq(tasks.status, input.status));
+      }
+
+      if (input?.search && input.search.trim() !== "") {
+        whereConditions.push(
+          sql`LOWER(${tasks.title}) LIKE LOWER(${`%${input.search.trim()}%`})`
+        );
+      }
+
       const tasksList = await ctx.db
         .select()
         .from(tasks)
-        .where(input?.status ? eq(tasks.status, input.status) : undefined)
+        .where(whereConditions.length ? and(...whereConditions) : undefined)
         .orderBy(desc(tasks.updatedAt))
         .limit(limit)
         .offset(offset);
 
       const totalCountResult = await ctx.db
-        .select({ total: count() }).from(tasks);
+        .select({ total: sql<number>`count(*)` })
+        .from(tasks)
+        .where(whereConditions.length ? and(...whereConditions) : undefined);
 
-      const totalCount = totalCountResult || 0;
+      const totalCount = totalCountResult[0]?.total ?? 0;
+
       return {
         tasks: tasksList,
         totalCount,
-        totalPages: Math.ceil(totalCount[0]?.total || 10 / limit),
+        totalPages: Math.ceil(totalCount / limit),
         currentPage: page,
       };
     }),
@@ -105,7 +122,6 @@ export const taskRouter = createTRPCRouter({
 
     return task ?? null;
   }),
-
 
   uploadFileToBackblaze: publicProcedure
     .input(

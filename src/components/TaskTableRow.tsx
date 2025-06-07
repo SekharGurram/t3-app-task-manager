@@ -46,7 +46,7 @@ export default function TaskTableRow({ task, onShowToast }: TaskTableRowProps) {
       await deleteTask.mutateAsync({ id: task.id });
       setShowConfirm(false);
       onShowToast("Task deleted successfully", "success");
-      router.refresh();
+      window.location.href = "/tasks"
     } catch (error) {
       onShowToast("Failed to delete the task!", "error");
       setShowConfirm(false);

@@ -109,7 +109,6 @@ export default function CreateTaskForm() {
 
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">Create Task</h1>
 
-        {/* Title Input */}
         <div>
           <label htmlFor="title" className="block mb-1 font-medium text-gray-700">
             Title <span className="text-red-500">*</span>
@@ -126,7 +125,6 @@ export default function CreateTaskForm() {
           {titleError && <p className="mt-1 text-red-600 text-sm">{titleError}</p>}
         </div>
 
-        {/* Description */}
         <div>
           <label htmlFor="description" className="block mb-1 font-medium text-gray-700">
             Description
@@ -141,9 +139,7 @@ export default function CreateTaskForm() {
           />
         </div>
 
-        {/* Status & Image Upload */}
         <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
-          {/* Status */}
           <div className="md:w-1/2">
             <label htmlFor="status" className="block mb-1 font-medium text-gray-700">
               Status <span className="text-red-500">*</span>
@@ -163,8 +159,6 @@ export default function CreateTaskForm() {
             </select>
             {statusError && <p className="mt-1 text-red-600 text-sm">{statusError}</p>}
           </div>
-
-          {/* Image Upload */}
           <div className="md:w-1/2">
             <label htmlFor="image" className="block mb-1 font-medium text-gray-700">
               Upload Image
@@ -188,8 +182,6 @@ export default function CreateTaskForm() {
             </label>
           </div>
         </div>
-
-        {/* Submit Button */}
         <div>
           <button
             type="button"
