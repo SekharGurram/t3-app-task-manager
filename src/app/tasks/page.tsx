@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { api } from "~/trpc/react";
 import TaskTable from "~/components/TaskTable";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function TasksPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "pending" | "in-progress" | "completed">("all");
+  const router = useRouter();
 
   const { data, isLoading, error } = api.task.getTasks.useQuery({
     search,
@@ -15,6 +18,12 @@ export default function TasksPage() {
     page: 1,
     limit: 100,
   });
+
+    useEffect(() => {
+    if (error?.data?.code === "UNAUTHORIZED") {
+      router.push("/auth/login");
+    }
+  }, [error, router]);
 
 
   return (

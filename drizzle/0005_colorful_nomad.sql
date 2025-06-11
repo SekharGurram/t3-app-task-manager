@@ -1,0 +1,1 @@
+ALTER TABLE "t3-app_session" ALTER COLUMN "secret_hash" DROP NOT NULL;

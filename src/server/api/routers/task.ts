@@ -1,15 +1,16 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { tasks } from "~/server/db/schemas";
-import { eq,desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { Buffer } from "buffer";
 import BlackbazeAPIService from "~/server/services/blackbazeApiService";
+import { protectedProcedure } from "~/server/api/trpc";
 
 
 const statusEnum = z.enum(["pending", "in-progress", "completed"]);
 
 export const taskRouter = createTRPCRouter({
-  createTask: publicProcedure
+  createTask: protectedProcedure
     .input(z.object({
       title: z.string().min(1),
       description: z.string().optional(),
@@ -21,24 +22,28 @@ export const taskRouter = createTRPCRouter({
         title: input.title,
         description: input.description,
         status: input.status ?? "pending",
-        imageUrl: input.imageUrl ?? ""
+        imageUrl: input.imageUrl ?? "",
+        userId:ctx.user.id
       })
     }),
 
 
-  getTaskById: publicProcedure
+  getTaskById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const whereConditions = [];
+      whereConditions.push(eq(tasks.id, input.id));
+      whereConditions.push(eq(tasks.userId, ctx.user.id));
       const task = await ctx.db
         .select()
         .from(tasks)
-        .where(eq(tasks.id, input.id))
+        .where(and(...whereConditions))
         .limit(1);
       return task[0] ?? null;
     }),
 
 
-  getTasks: publicProcedure
+  getTasks: protectedProcedure
     .input(
       z.object({
         status: z.union([statusEnum, z.literal("all")]).optional(), // ✅ allow "all"
@@ -63,6 +68,7 @@ export const taskRouter = createTRPCRouter({
           sql`LOWER(${tasks.title}) LIKE LOWER(${`%${input.search.trim()}%`})`
         );
       }
+      whereConditions.push(eq(tasks.userId, ctx.user.id));
 
       const tasksList = await ctx.db
         .select()
@@ -87,7 +93,7 @@ export const taskRouter = createTRPCRouter({
       };
     }),
 
-  updateTask: publicProcedure
+  updateTask: protectedProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -98,6 +104,8 @@ export const taskRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const whereConditions = [];
+      whereConditions.push(eq(tasks.id, input.id));
       await ctx.db.update(tasks)
         .set({
           title: input.title,
@@ -110,12 +118,12 @@ export const taskRouter = createTRPCRouter({
     }),
 
 
-  deleteTask: publicProcedure
+  deleteTask:protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db.delete(tasks).where(eq(tasks.id, input.id))
     }),
-  getLatest: publicProcedure.query(async ({ ctx }) => {
+  getLatest: protectedProcedure.query(async ({ ctx }) => {
     const task = await ctx.db.query.posts.findFirst({
       orderBy: (tasks, { desc }) => [desc(tasks.createdAt)],
     });
@@ -123,7 +131,7 @@ export const taskRouter = createTRPCRouter({
     return task ?? null;
   }),
 
-  uploadFileToBackblaze: publicProcedure
+  uploadFileToBackblaze: protectedProcedure
     .input(
       z.object({
         name: z.string(),
@@ -142,7 +150,7 @@ export const taskRouter = createTRPCRouter({
       };
     }),
 
-  getUploadedFile: publicProcedure
+  getUploadedFile: protectedProcedure
     .input(
       z.object({
         name: z.string()
